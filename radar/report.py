@@ -10,7 +10,7 @@ SHOWN = 20
 OTHER_TERMS = 15
 POSTS_SHOWN = 3   # posts quoted in full per term
 # signal key -> label key, in the order of how early the signal comes
-KINDS = ["x", "hf", "breakout", "sitemap", "newsite", "usecase", "cosearch", "watch"]
+KINDS = ["x", "hf", "feed", "breakout", "sitemap", "newsite", "usecase", "cosearch", "watch"]
 
 
 def leads(cfg: dict, blocks: dict[str, dict]) -> tuple[list[dict], dict]:
@@ -138,6 +138,9 @@ def _review_lines(cfg: dict, rev: dict, summ: dict) -> list[str]:
 def _status_lines(b: dict[str, dict], extra: dict[str, dict]) -> list[str]:
     x, hf, bo, sm = b["x"], b["hf"], b["breakout"], b["sitemap"]
     lines = ["", t("status_h"), ""]
+    for name, status in b.get("feed", {}).get("sources", {}).items():
+        lines.append(f"- Feed {name}: " + (status.get("error") or f"{status['items']} items, {status['new']} new" +
+                     (", baseline built" if status.get("first_run") else "")))
     if not x.get("skipped"):
         ok = "" if x.get("error") else t("st_x_ok", answered=x["answered"], accounts=x["accounts"], posts=x["posts"]) + \
             (t("st_x_first") if x.get("first_run") else "")
@@ -161,6 +164,8 @@ def _status_lines(b: dict[str, dict], extra: dict[str, dict]) -> list[str]:
 
 def daily(cfg: dict, lead: list[dict], b: dict[str, dict], gsc: dict, rev: dict, summ: dict, extra: dict[str, dict]) -> str:
     lines = [t("title"), *keyword_table(cfg, extra.get("usecases", {"skipped": True})), "", t("leads_h"), "", t("leads_cols"), "|---|---|---|---|---|---|"]
+    if cfg.get("market", {}).get("name"):
+        lines[0] = "## " + cfg["market"]["name"] + " radar"
     names_ = named(cfg, lead)
     for r in names_[:SHOWN]:
         ex = _cell(" / ".join(e[:50] for e in r["examples"][:2]))
@@ -170,6 +175,13 @@ def daily(cfg: dict, lead: list[dict], b: dict[str, dict], gsc: dict, rev: dict,
     if rest:
         lines += ["", t("other_terms") + ", ".join(rest)]
     lines += topic_lines(cfg, lead, b, gsc)
+    if b.get("feed", {}).get("articles"):
+        lines += ["", "### New publisher articles", ""]
+        for article in b["feed"]["articles"][:30]:
+            title = _cell(article["title"]).replace("[", "(").replace("]", ")")
+            url = article["url"]
+            label = f"[{title}](<{url}>)" if url.startswith(("https://", "http://")) else title
+            lines.append(f"- {article['source']}: {label}")
     recent = extra.get("recent_sources", {"skipped": True})
     if not recent.get("skipped"):
         lines += ["", t("recent_h"), ""]

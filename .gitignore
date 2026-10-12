@@ -4,6 +4,8 @@ gsc_token.json
 gsc_client.json
 report.md
 report.json
+report-legal-us.md
+report-legal-us.json
 sources.md
 __pycache__/
 .pytest_cache/
