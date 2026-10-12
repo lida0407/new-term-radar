@@ -1,5 +1,7 @@
 # new-term-radar
 
+This fork adds a **US legal software radar**: legal publisher RSS feeds, scoped GitHub searches, legal workflow topics, and an independent OpenAI-compatible model API. Run `run-legal-radar.cmd` on Windows. See [LEGAL-US.md](LEGAL-US.md) for the market profile, limits and configuration. The original AI radar remains available; upstream documentation follows below.
+
 [中文说明](README.zh-CN.md)
 
 A daily report of the names that are starting to surge in AI: new models, products, tools and repos, caught where they are said first, before they show up in keyword tools.

@@ -81,13 +81,21 @@ def variants(row: dict, display: str) -> list[str]:
 def breakouts(cfg: dict, state: Path) -> dict:
     c = cfg["breakout"]
     since = (date.today() - timedelta(days=c["window_days"])).isoformat()
-    q = urllib.parse.quote(f"created:>={since} stars:>={c['min_stars']}")
-    repos: list[dict] = []
-    for page in range(1, PAGES + 1):
-        items = _get(f"/search/repositories?q={q}&sort=stars&order=desc&per_page=100&page={page}").get("items", [])
-        repos += items
-        if len(items) < 100:
-            break
+    unique: dict[str, dict] = {}
+    for query in c.get("queries") or [""]:
+        q = urllib.parse.quote(f"{query} created:>={since} stars:>={c['min_stars']}")
+        for page in range(1, PAGES + 1):
+            items = _get(f"/search/repositories?q={q}&sort=stars&order=desc&per_page=100&page={page}").get("items", [])
+            unique.update({r["full_name"]: r for r in items})
+            if len(items) < 100:
+                break
+    repos = list(unique.values())
+    if c.get("include_pattern"):
+        pattern = re.compile(c["include_pattern"], re.I)
+        repos = [r for r in repos if pattern.search(r["full_name"] + " " + (r.get("description") or ""))]
+    if c.get("exclude_pattern"):
+        pattern = re.compile(c["exclude_pattern"], re.I)
+        repos = [r for r in repos if not pattern.search(r["full_name"] + " " + (r.get("description") or ""))]
     path = state / "gh_stars.json.gz"
     before = snap.load(path)
     rows = score(repos, before, datetime.now(timezone.utc), c["velocity_min"], c["delta_min"])
@@ -112,5 +120,5 @@ def breakouts(cfg: dict, state: Path) -> dict:
         terms.append({"term": row["variants"][0], "recent": 1, "variants": row["variants"], "repo": row["repo"],
                       "note": t("note_breakout", repo=row["repo"], stars=row["stars"], velocity=row["velocity"], gain=gain),
                       "examples": [f"{row['repo']}: {row['description']}"]})
-    return {"searched": len(repos), "first_run": before is None, "repos": rows, "terms": terms,
+    return {"searched": len(unique), "matched": len(repos), "first_run": before is None, "repos": rows, "terms": terms,
             "window_days": c["window_days"]}

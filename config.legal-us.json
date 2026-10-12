@@ -1,0 +1,29 @@
+{
+  "lang": "en",
+  "market": {"name": "US Legal Software", "country": "US", "language": "en"},
+  "skip": ["x", "hf", "sitemaps", "newsites", "gsc", "review", "usecases"],
+  "x_accounts": {"labs": [], "bloggers": []},
+  "feeds": {
+    "LawNext": {"url": "https://www.lawnext.com/feed", "include": "legal|law|contract|litigation|discovery|software|technology|AI"},
+    "Clio": {"url": "https://www.clio.com/blog/feed/", "include": "software|technology|AI|automation|launch|product|integration|release"}
+  },
+  "sitemaps": {},
+  "topics": {
+    "Legal research and drafting": "legal research|case law|caselaw|draft|citation|brief|legal assistant",
+    "Contracts and in-house legal": "contract|redlin|agreement|in.house|clm",
+    "Litigation and e-discovery": "litigat|e.?discovery|ediscovery|deposition|docket|court",
+    "Law firm operations": "practice management|legal billing|time tracking|client intake|trust accounting|law firm"
+  },
+  "known_terms": [],
+  "stop_words": ["legal", "law", "lawyer", "lawyers", "attorney", "attorneys", "firm", "firms", "software", "contract", "contracts"],
+  "judge": {"model": "", "min_score": 0.5},
+  "breakout": {
+    "window_days": 90, "min_stars": 5, "velocity_min": 2, "delta_min": 5,
+    "include_pattern": "legal|lawyer|attorney|law firm|contract|e.?discovery",
+    "exclude_pattern": "[\u4e00-\u9fff]|\\bitalia\\b|\\bitalian\\b",
+    "queries": ["legal in:name,description,topics", "legaltech in:name,description,topics", "ediscovery in:name,description,topics"]
+  },
+  "new_sites": {"queries": {}, "weekday": 0},
+  "usecases": {"per_day": 0, "related_geo": "US", "location_code": 2840},
+  "gsc": {}
+}

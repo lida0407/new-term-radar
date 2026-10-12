@@ -5,6 +5,7 @@ from __future__ import annotations
 _LANG = "en"
 
 T = {
+    "kind_feed": ("Publisher feed", "出版商订阅"),
     # notes on a lead, one per signal
     "note_x": ("X: {n} accounts, {likes} likes", "X {n} 个账号 ♥{likes}"),
     "note_hf": ("Hugging Face: new at #{rank}", "HF 新进榜第 {rank} 名"),

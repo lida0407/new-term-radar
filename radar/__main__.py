@@ -28,10 +28,10 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import breakout, config, gsc, new_sites, notify, report, review, sitemaps, sources, store, usecases
+from . import breakout, config, feeds, gsc, new_sites, notify, report, review, sitemaps, sources, store, usecases
 from .i18n import t
 
-SKIPPABLE = {"x", "hf", "breakout", "sitemaps", "newsites", "gsc", "review", "judge", "usecases"}
+SKIPPABLE = {"x", "hf", "feeds", "breakout", "sitemaps", "newsites", "gsc", "review", "judge", "usecases"}
 
 
 def run(fn, skip: bool = False) -> dict:
@@ -69,6 +69,7 @@ def cmd_sources(args, cfg: dict, state: Path) -> int:
 def cmd_daily(args, cfg: dict, state: Path) -> int:
     weekly = args.new_sites or date.today().weekday() == cfg["new_sites"]["weekday"]
     blocks = {
+        "feed": run(lambda: feeds.discover(cfg, state), "feeds" in args.skip),
         "x": run(lambda: sources.x_new(cfg, state), "x" in args.skip),
         "hf": run(lambda: sources.hf_new(cfg, state), "hf" in args.skip),
         "breakout": run(lambda: breakout.breakouts(cfg, state), "breakout" in args.skip),
@@ -112,6 +113,9 @@ def main(argv: list[str] | None = None) -> int:
     if unknown:
         p.error(f"--skip: unknown {sorted(unknown)}")
     cfg = config.load(Path(args.config))
+    args.skip.update(cfg["skip"])
+    if args.skip - SKIPPABLE:
+        p.error(f"config skip: unknown {sorted(args.skip - SKIPPABLE)}")
     if "judge" in args.skip:
         cfg["judge"]["model"] = ""
     state = Path(args.state)

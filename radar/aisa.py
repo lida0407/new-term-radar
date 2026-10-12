@@ -37,9 +37,9 @@ def key() -> str:
     return k
 
 
-def _post(url: str, body: dict, timeout: int) -> dict:
+def _post(url: str, body: dict, timeout: int, api_key: str | None = None) -> dict:
     req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST", headers={
-        "Content-Type": "application/json", "Authorization": f"Bearer {key()}",
+        "Content-Type": "application/json", "Authorization": f"Bearer {api_key if api_key is not None else key()}",
         "User-Agent": UA, "x-aisa-source": "new-term-radar"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as res:
@@ -79,8 +79,13 @@ def call_all(calls: list[dict]) -> tuple[dict[str, dict], int]:
 
 
 def chat(model: str, system: str, user: str, max_tokens: int = 1500) -> str:
-    body = _post(CHAT, {"model": model, "temperature": 0, "max_tokens": max_tokens, "messages": [
-        {"role": "system", "content": system}, {"role": "user", "content": user}]}, CHAT_TIMEOUT)
+    base = os.environ.get("RADAR_LLM_BASE_URL", "").strip().rstrip("/")
+    api_key = os.environ.get("RADAR_LLM_API_KEY", "").strip() if base else None
+    if base and not api_key:
+        raise AisaError("set RADAR_LLM_API_KEY for RADAR_LLM_BASE_URL")
+    body = _post(base + "/chat/completions" if base else CHAT,
+                 {"model": model, "temperature": 0, "max_tokens": max_tokens, "messages": [
+        {"role": "system", "content": system}, {"role": "user", "content": user}]}, CHAT_TIMEOUT, api_key=api_key)
     try:
         return body["choices"][0]["message"]["content"] or ""
     except (KeyError, IndexError, TypeError) as exc:
